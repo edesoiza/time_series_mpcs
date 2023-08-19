@@ -1,0 +1,200 @@
+---
+title: "ARMA Video Notes"
+author: "Eric Desoiza"
+use-packages: {mathtools}
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Lesson 6 Part 1 - Intro to AR Models
+
+$$x_t = \phi_1 x_{t-1} + \phi_2 x_{t-2} + \cdots + \phi_p x_{t-p} + w_t $$
+
+$x_t$ is the time series and $\phi$ are the set of AR parameters and $w_t$ are the unexplained errors (iid). We are looking at an order p AR Process [AR(p)]
+
+Backshift Operator - 
+
+$$x_t - \phi_1 x_{t-1} - \phi_2 x_{t-2} - \cdots - \phi_p x_{t-p} = w_t$$
+
+Defining $Bx_t = x_{t-1}$
+
+$$B^px_t = x_{t-p}$$
+
+We can define the linear process as 
+
+$$x_t - \phi_1 Bx_t - \phi_2 B^2 x_t - \cdots - \phi_p B^p x_t = w_t$$
+
+We can also factor out $x_t$
+
+$$\Phi(B) = 1 - \phi_1B - \phi_2 B^2 - \cdots$$
+
+AR(1) Process $\rightarrow (1 - \phi_1B)x_t = w_t$ or $x_t = \phi_1 x_{t-1} + w_t$
+
+Is one point more likely to be closer to its neighbor? We should compute the ACF in order to do so.
+
+# Lesson 6 Part 2 - Inverting AR(1) Process
+
+What is the goal?
+
+We have $\Phi(B)x_t = w_t$. We would like to write $x_t = \Phi^{-1}(B)w_t$. This will have some value in the future.
+
+In the simple case AR(1)
+
+Note that $\phi x_{t-1} = \phi(\phi x_{t-2} + w_{t-1})$. We can continue to dig deeper and deeper into this process. 
+
+We can then see it as 
+
+$$\phi^k x_{t-k} + \sum_{j=0}^{k-1} \phi^j w_{t-j}$$
+
+The first term should approach zero if $|\phi| < 1$ and simply have the second term.
+
+# Lesson 6 Part 3 - ACF of AR1 Process 
+
+Assuming $w_t$ is iid, then $E[x_t] = 0$
+
+we are going to use the inversion of the AR(1) function in order to calculate the covariance
+
+$$\gamma(h) = E\bigg[\bigg(\sum_{j=0}^{\infty} \phi^j w_{t+h-j}\bigg)\bigg(\sum_{k=0}^{\infty}\phi^k w_{t-k}\bigg)\bigg]$$
+We just need to take advantage of the fact that the $E[w_iw_j] = 0$ for most instances unless i = j.
+
+As we expand the series and simplify we come to 
+
+$$\sigma_w^2 \sum_{j=0}^{\infty} \phi^{h+j}\phi^j = \sigma_w^2 \phi^h \sum_{j=1}^{\infty} \phi^{2j} = \sigma_w^2\phi^h\frac1{1-\phi^2}$$
+
+From this we can get the ACF which is simply $\rho(h) = \phi^h$
+
+# Lesson 6 Part 4 - AR(p) Parameters
+
+For what values of $\phi$ is $x_t$ stationary? 
+
+It requires the characteristic polynomial from the backshift operator
+
+$$\phi(z) = 1 - \phi_1 z - \phi_2 z^2 - \cdots - \phi_p z^p$$
+For example we have the AR(1) process:
+
+$$\phi(z) = 1 - \phi_1 z \rightarrow 1 - \phi_1 z = 0 \rightarrow z = \frac1{\phi_1}$$
+
+For AR(2) we have a similar process:
+
+$$\phi(z) = 1 - .5z - .5z^2 = 0 \rightarrow z = 1 \textrm{ and } -2$$
+
+The issue is that the roots need to be outside the unit circle and unfortunately the 1 is on the unit circle. Thus it is not stationary
+
+# Lesson 6 Part 5 - Intro to MA processes
+
+A moving average function is based on the process of previous noise and variance having an effect on the next value as it moves around a certain average. Previous values do not have an exact effect but previous error does.
+
+
+$$x_t = w_t + \theta_1 w_{t-1} + \theta_2 w_{t-2} + \cdots + theta_q w_{t-q}$$
+
+There is a cut off to the correlation between values based on the number of values in the process and does not fade away like the AR process
+
+$$\Theta(B) = (1+\theta_1B+\theta_2 B^2 + \cdots + \theta_q B^q)$$
+with $x_t = \Theta(B)w_t$ the expected value is 0
+
+The autocovariance process is similar to that of the AR process:
+
+$$\gamma(h) = \begin{cases}
+(1+\theta^2)\sigma_w^2 & h = 0 \\
+\theta\sigma_w^2 & h = 1 \\
+0 & h > 1
+\end{cases}$$
+
+We also have 
+
+$$\rho(h) = 
+\begin{cases}
+\frac{\theta}{1+\theta^2} & h = 1 \\
+0 & h > 1
+\end{cases}$$
+
+# Lesson 6 Part 6 - Inverting MA Processes
+
+We have
+
+$$\Theta(B) = (1+\theta_1B+\theta_2 B^2 + \cdots + \theta_q B^q)$$
+In general for an MA(q) process $\rho(h) = 0, \quad h > q$
+
+Unlike AR process, MA process are stationary for an value of theta. 
+
+But there is an issue of invertibility which makes the process easier to work with.
+
+A model of theta and its reciprocal produces the same ACF because of this we need to be aware of makign the better choice of coefficients and adjust our noise accordingly
+
+We will usually choose the invertible one and also some to the following depiction:
+
+$$w_t = -\theta w_{t-1} + x_t = \sum_{j=0}^{\infty}(-\theta)^j x_{t-j}$$
+
+This idea of theta being less than 1 absolutely can be generalized to MA(q) processes
+
+# Lesson 7 Part 1 - Yule Walker Equations
+
+We need to look at the AR(p) model to start this
+
+We will then get the autocovariance of the AR process which will aid us
+
+We can begin to identify that $\gamma(h) = \phi_1 \gamma(h-1) + \phi_2 \gamma(h - 2) \vdots$
+
+We can also see that 
+
+$$\gamma(0) = \phi_1 \gamma(1) + \phi_2 \gamma(2) + \cdots + \phi_p \gamma(p) + E[x_t w_t], \quad E[x_t w_t] = \psi_0 w_t^2 = 1 * w_t^2 = \sigma_w^2$$
+
+Finally we come to 
+
+$$\sigma_w^2 = \gamma(0) - \phi_1 \gamma(1) - \cdots - \phi_p \gamma(p)$$
+We can put togeter the Yule Walker equations using autocovariance or autocorrelation. Autocorrelation is a bit more clean and thus shall be used :)
+
+$$\hat{R}_p\hat{\phi} = \hat{\rho}_p, \quad \sigma_w^2 = \hat{\gamma(0)}(1 - \hat{\rho}_p^T\hat{\phi})$$
+
+Where we have
+
+$$\hat{\phi} = \begin{bmatrix}
+\hat{\phi}_1 \\
+\hat{\phi}_2 \\
+\vdots \\
+\hat{\phi}_p
+\end{bmatrix}, \quad 
+\hat{\rho} = \begin{bmatrix}
+\hat{\rho}(1) \\
+\hat{\rho}(2) \\
+\vdots \\
+\hat{\rho}(p) \\
+\end{bmatrix}$$
+
+$$\hat{R}_p = \begin{bmatrix}
+1 & \hat{\rho}(1) & \ldots & \hat{\rho}(p - 1) \\
+\hat{\rho}(1) & 1 & \ldots & \hat{\rho}(p - 2) \\
+\vdots & \vdots & \ddots & \vdots \\
+\hat{\rho}(1 - p) & \hat{\rho}(2 - p) & \ldots & 1 
+\end{bmatrix}$$
+
+# Lesson 7 Part 2 - PACF 
+
+The partial autocorrelation coefficient of order k, denoted by $\rho_k^p$ and referred to as the PACF, is defined as the correlation coefficient between observations separated by k periods, when we eliminate the linear dependence due to intermediate values
+
+# Lesson 7 Part 3 - Nonlinear Least Squares
+
+Non-linear system
+
+$$\begin{bmatrix}
+a_{11}(x) & a_{12}(x) \\
+a_{21}(x) & a_{22}(x)
+\end{bmatrix}
+\begin{bmatrix}x_1 \\ x_2 \end{bmatrix} = 
+\begin{bmatrix} b_1 \\ b_2 \end{bmatrix}$$
+
+This is understood as Ax = b
+
+We are going to attempt to linearize this relationship and then work from its results and slowly approach the optimal solution
+
+We have $a_{11}(x)x_1 + a_{12}(x)x_2 -b_1 = 0$ and $N(x) = 0$
+
+We can approximate $N(x) = N(x_0) + \frac{\partial N (x_0)}{\partial x}(x - x_0)$
+
+We have now made this process to be a bit more simple in fact and this can be a good or bad estimate but we shall see
+
+We will now replace each row in the system from before and adjust from there
+ 

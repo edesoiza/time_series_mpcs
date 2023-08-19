@@ -1,0 +1,146 @@
+---
+title: "Fourier Video Notes"
+author: "Eric Desoiza"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Lesson 8 Part 1 - Intro to Fourier Series
+
+Fourier Serieis apply to functions that are periodice over some period L
+
+Any square integral, L-periodic function can be expanded into a series with an amplitude of $A_n$, discrete frequencies $\frac{2\pi n}{L}$ and phases $\phi_n$
+
+This is depicted as follows
+
+$$f(x) = \frac{A_0}{2} + \sum_{n=1}^N A_n \sin\bigg(\frac{2\pi n x}{L} + \phi_n\bigg)$$
+
+The fourier series is guaranteed to converge to f(x) at almost every point, but in engineering applications such as this the conditions of periodicity and square integrability is sufficient for convergence :)
+
+We can also display the fourier expansion as such
+
+$$f(x) = \frac{a_0}{2} + \sum_{n=1}^N \bigg(a_n \cos\bigg(\frac{2\pi n x}{L}\bigg) + b_n \sin\bigg(\frac{2 \pi n x}{L}\bigg)\bigg)$$
+
+$$a_n = A_n\sin(\phi_n), \quad b_n = A_n\cos(\phi_n)$$
+
+We have now assumed the phase to be zero and with a combination of a sin and cosine we can essential simulate a phase shift! And this is equivalent through trignometric relationships
+
+We now have the fourier coefficients of a and b and we find these values at each frequency sought out.
+
+Now instead of pairs of two numbers we will use complex numbers because it is actually more effictive
+
+We denote it as such 
+
+$$f(x) = \sum_{n = -N}^N c_n e^{i2\pi n x / L}$$
+
+We know that $e^{ix} = \cos(x) + i\sin(x)$ and we now have separated the two values and have these two values but it works more effectively. Another important note is
+
+$$c_n = \begin{cases}
+\frac12(a_n - ib_n) & n > 0 \\
+\frac{a_0}{2} & n = 0 \\
+c_{|n|}^* & n < 0
+\end{cases}$$
+
+We now see that the negative values are actually redundant because of the conjugates being taken out. But it allows for more compact illustrations and an opportunity to improve with efficient algorithms
+
+# Lesson 8 Part 2 - Calculating Fourier Coefficients
+
+The following is assuming 2pi periodicity (2pi = L)...
+
+Due to the orthogonality of each term in the series we can note that 
+
+$$\int_{-L/2}^{L/2}e^{2\pi i n x/L}e^{-2\pi i m x / L} = 0$$
+
+in the case that $m \neq n$. This means we can compute them one by one as 
+
+$$c_n = \frac1L \int_{-L/2}^{L/2}f(x)e^{-2\pi n x / L} \textrm{dx}$$
+and it is possible to do this with the sin/cos expansion from before in which we have 
+
+$$a_n = \frac2L \int_{-L/2}^{L/2}f(x)\cos\bigg(\frac{2\pi n x}{L}\bigg) \textrm{dx}$$
+
+$$b_n = \frac2L \int_{-L/2}^{L/2}f(x)\sin\bigg(\frac{2\pi n x}{L}\bigg) \textrm{dx}$$
+You can thing of the complex form having the real (cos) and the imaginary (sin)
+
+An example we can put forward is for $f(x) = \frac{x}{\pi}, -\pi < x < \pi$
+
+This brings us to the integrals of 
+
+$$a_n = \frac1{\pi} \int_{-\pi}^{\pi} f(x)\cos(nx) \textrm{dx}$$
+
+$$b_n = \frac1{\pi} \int_{-\pi}^{\pi} f(x)\sin(nx)\textrm{dx}$$
+
+the first value comes out to zero in fact and that second comes to 
+
+$$\frac{2(-1)^{n+1}}{\pi n}, n \geq 1$$
+
+This demostrates the function to be completely odd because of it only having sin or imaginary parts and no real parts.
+
+Now we have 
+
+$$f(x) = \frac2{\pi} \sum_{n=1}^{\infty} \frac{(-1)^{n+1}}{n}sin(nx)$$
+
+# Lesson 8 Part 3 - Fourier Transform
+
+The Fourier Transform is intended to extend the concept of fourier series into functions that usually do not fit the parameters of convergence
+
+If we take the L-periodicity we continue to grow the amount of times it occurs and arrives to a continue frequency
+
+We define the FT and iFT as follows
+
+$$\hat f(\omega) = \frac1{2\pi}\int_{-\infty}^{\infty} f(t) e^{-i\omega t}\textrm{dt}$$
+
+$$f(t) = \int_{-\infty}^{\infty}\hat f (\omega)e^{i\omega t}\textrm{d}\omega$$
+
+Some important properties of a fourier transform is
+
+Linearity - 
+
+$$F(f + g) = F(f) + F(g), \quad F(af) = aF(f)$$
+
+Energy Preserving -
+
+$$\int_{-\infty}^{\infty}|f(t)|^2dt = \int_{-\infty}^{\infty}|\hat f(\omega)|^2 d\omega, \quad |\hat f (\omega)|^2 = \textrm{Power Spectrum}$$
+
+The power spectrum is invariant to shifts as well
+
+Another important property is that of the conolution theorem whch is as follows 
+
+$$f * g \equiv \tilde{f}(t) = \int_{-\infty}^{\infty}f(\tau)g(t - \tau) d\tau$$
+
+We can also do this process in the fourier space
+
+$$F(f*g) = F(f)F(g) = \hat{f}\hat{g}$$
+Now we can see that the convolution in phyiscal space is the same as the product of the functions in fourier space and now we can see the relationship
+
+$$f *g = F^{-1}(\hat{f}\hat{g})$$
+A convolution is along the lines of a O(n^2) process and fourier transforms are simply O(nlogn) which is far more efficient
+
+# Lesson 8 Part 4 - DFT Basic Idea
+
+With discretely sampled data we work with the aptly named Discrete Fourier Transform which can be derived from the discretized integral or the Fourier Series Formulation
+
+This leads to the same outcome with a finite sum of discrete frequencies
+
+$$X_k \equiv \sum_{n=0}^{N-1} x_n e^{-2\pi i kn/N}, \quad k = 0,1,2,\ldots N-1$$
+
+We only look at the first half of possible frequencies as the others cannot be resolved as there wont be more than one sample of those values and its not enough data to see the differences.
+
+We only look at integer values due to it being discrete
+
+It is also important to note that energy preservation exists in DFT
+
+$$\sum_{k=1}^N |X_k|^2 = \sum_{t=1}^N (x_t)^2$$
+
+assuming zero mean. We also can do convolution.
+
+Small Note - 
+
+We also have the scaled periodogram from Shumway
+
+$$P(j/n) = \bigg(\frac2n\sum_{t=1}^{n}x_t \cos(2\pi t j / n)\bigg)^2 + \bigg(\frac2n \sum_{t=1}^n x_t \sin(2\pi t j / n)\bigg)^2$$
+
+This is the square of the DF coefficients as each discrete frequency.
+

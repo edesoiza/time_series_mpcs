@@ -1,0 +1,485 @@
+---
+title: "Fourier Analysis Notes"
+author: "Eric Desoiza"
+header-includes:
+   - \usepackage{amsmath}
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In this chapter, we focus on the frequency domain approach to time series analysis.
+We argue that the concept of regularity of a series can best be expressed in terms of
+periodic variations of the underlying phenomenon that produced the series.
+
+Coherency is a frequency based measure of the correlation between
+two series at a given frequency, and we show later that it measures the performance
+of the best linear filter relating the two series.
+
+# Chapter 4.1 - Cyclical Behavior and Periodicity
+
+In order to define the rate at which a series oscillates, we first define a \textit{cycle} as one complete period of a sine or cosine function defined over a unit time interval
+
+$$x_t = A\cos(2\pi\omega t + \phi)$$
+
+where $\omega$ is a frequency index, defined in cycles per unit time with A determining the amplitude of the function and $\phi$, called the phase, determining the start of the cosine function. 
+
+Sometimes it is easier to use a trignometric identity and write
+
+$$x_t = U_1 \cos(2\pi\omega t) + U_2 \sin(2\pi\omega t)$$
+
+where $U_1 = A\cos\phi$ and $U_2 = -A\sin\phi$ like box muller :)
+
+The amplitude is $A = \sqrt{U_1^2 +U_2^2}$ and the phase is $\phi = \tan^{-1}(-U_2/U_1)$. A and $\phi$ are independent random variables, where $A^2$ is chi-squared with 2 degrees of freedom, $\phi$  is uniformly distributed from $(-\pi,\pi)$. With $U_1$ and $U_2$ are independent.
+
+If we assume the uniform variables to be uncorrelated with mean zero and a certain variance then the time series will be stationary and mean zero.
+
+Writing $c_t = \cos(2\pi\omega t)$ and $s_t = \sin(2\pi\omega t)$ we have the following autocovariance function
+
+$$\gamma_x(h) = \sigma^2c_{t+h}c_t + \sigma^2 s_{t+h}s_t = \sigma^2\cos(2\pi\omega h)$$
+
+and we see that 
+
+$$\textrm{var}(x_t) = \gamma_x(0) = \sigma^2$$
+an estimate of $\sigma^2$ is the sample variance of the two oservations of uniform variables and is thus $a^2 + b^2$
+
+The random process from the trignometric identity earlier is a function of its frequency $\omega$. This means that for data that occurs at discrete time points, we will need at least two points to determine a cycle so the highest frequency of interest is .5 cycles per point. This is the folding frequency and is the highest that van be seen in discrete sampling. 
+
+We now have a generalization of the trignometric identity that allows mixtrues of periodic series with multiple frequencies and amplitudes
+
+$$x_t = \sum_{k=1}^q [U_{k1}\cos(2\pi\omega_k t) + U_{k2}\sin(2\pi\omega_k t)]$$
+
+Where the uniforma variables are uncorrelated zero-mean random varaibles with variances and frequency matching their respective k. 
+
+The autocovariance of this is 
+
+$$\gamma_x(h) = \sum_{k=1}^q \sigma_k^2 \cos(2\pi\omega_k h)$$
+
+and we note that the autocovariance function is the sum of periodic components with weights proportional to $sigma_k^2$ Hence our variance is as follows 
+
+$$\textrm{var}(x_t) = \gamma_x(0) = \sum_{k=1}^q \sigma_k^2$$
+
+the estimate of the total variance of $x_t$ would be the sum of the sample variances
+
+$$\hat{\textrm{var}}(x_t) = \hat{\gamma}_x(0) = \sum_{k=1}^q(a_k^2 + b_k^2)$$
+
+### Example 4.1 - A Periodic Series
+
+We have generated 3 series 
+
+$$  x_{t} = 
+\begin{cases}
+x_{ts} = U_1 \cos(2\pi t \times \omega) + U_2 \sin(2\pi t \times \omega) &\\ 
+x_{t1} = 2\cos(2\pi t \times 6/100) + 3\sin(2\pi t \times 6/100) &\\
+x_{t2} = 4\cos(2\pi t \times 1/10) + 5\sin(2\pi t \times 1/10) &\\
+x_{t3} = 6\cos(2\pi t \times 4/10) + 7\sin(2\pi t \times 4/10)
+\end{cases}$$
+
+We can now use the Amplitude of these through the square root of their uniform values which can help us find the maximum and minimum amplitude
+
+We can also construct the sum of the series
+
+and do our analysis upon that and identify a level of periodicity
+
+### Example 4.2 - Estimation and the Periodogram
+
+For any time series where n is odd we may exactly write
+
+$$x_t = a_0 + \sum_{j=0}^{(n-1)/2} [a_j\cos(2\pi t j /n) + b_j\sin(2\pi t j /n)$$
+
+If n is even we can modify the equation to (n/2 - 1) and an additional component give by $a_{n/2}\cos(2\pi t \times .5) = a_{n/2}(-1)^t$. This is exact for any sample. The generalization is just a approximation.
+
+The regression coefficients can be written as ($a_0 = \bar{x}$)
+
+$$a_j = \frac{2}{n}\sum_{t=1}^n x_t \cos(2\pi t j / n) \quad \textrm{and} \quad b_j = \frac{2}{n}\sum_{t=1}^n x_t \sin(2\pi t j / n)$$
+
+and we define the \textit{scaled periodogram} as 
+
+$$P(j/n) = a_j^2 + b_j^2$$
+
+this is of interest because it indicates which frequency components in the exact formula are large in magnitude and which components are small. 
+
+The scaled periodogram is simply the sample variance at each frequency component and consequently is an estimate of $\sigma_j^2$ corresponding to the sinusoid oscillating at a frequency of $\omega_j = j/n$.
+
+Large values of P(j/n) indicate which frequencies are predominant in the series and small ones may be associated with noise.
+
+It is not necessary to do a long process regessing for $a_j$ and $b_j$ because they can be computed if n is a highly composite integer.
+
+The discrete fourier transform (DFT) is a complex-valued weighted average of the data
+
+$$d(j/n) = n^{-1/2} \bigg(\sum_{t=1}^n x_t \cos(2\pi t j / n) - i \sum_{t = 1}^n x_t \sin(2\pi t j /n) \bigg)$$
+
+where the frequencies j/n are the Fourier or fundamental frequencies. Because of a large number of redundancies in the calculation, we can speed up this process using fast Fourier Transform (FFT)
+
+$$|d(j/n)|^2 = \frac 1n \bigg(\sum_{t=1}^n x_t \cos(2\pi t j / n) \bigg)^2 + \frac 1n \bigg(\sum_{t=1}^n x_t \sin(2\pi t j / n )\bigg)^2$$
+
+we may calculate the scaled periodogram as 
+
+$$P(j/n) = \frac 4n |d(j/n)|^2$$
+
+There is a mirror effect that the complement of a value via 1 is the same.
+
+$$P(\frac6{100}) = P(\frac{94}{100}) = 13, \quad P(\frac1{10}) = P(\frac 9{10}) = 41$$
+
+Note - Different packages scale the FFT differently, so it is a good idea to consult the documentation. R computes it without the factor $n^{-1/2}$ and with an additional factor of $e^{2\pi i \omega_j}$ that can be ignored because we are interest in the squared modulus
+
+### Example 4.3 - Star Magnitude
+
+We can understand an amplitude modulated signal. For example, suppose we are observing signal-plus-noise, $x_t = s_t + v_t$ where $s_t = \cos(2\pi\omega t)\cos(2\pi\delta t)$ and $\delta$ is very small. in this situation we will have oscillate at omega but the amplitude will be modulated.
+
+# Chapter 4.2 - The Spectral Density
+
+We will now define the fundamental frequency domain tool, the spectral density. 
+
+### Example 4.4 - A Periodic Stationary Process
+
+Let us consider a periodic stationary random process with a fixed frequency of $\omega_0$
+
+$$x_t = U_1 \cos(2\pi\omega_0 t) + U_2\sin(2\pi\omega_0 t)$$
+
+Where $U_1$ and $U_2$ are uncorrelated zero-mean random variables with equal variance. 
+We now look at the autocovariance function
+
+$$\gamma(h) = \sigma^2 \cos(2\pi\omega_0 h) = \int_{-.5}^{.5}e^{2\pi i \omega h}dF(\omega)$$
+
+$F(\omega)$ is defined as 
+
+$$F(\omega) = \begin{cases}
+0 & \omega < -\omega_0 \\
+\sigma^2/2 & -\omega_0 \leq \omega < \omega_0 \\
+\sigma^2 & \omega \geq \omega_0
+\end{cases}$$
+
+The function behaves like a cumulative distribution function for a discrete random variable except it maxes at $\sigma^2$ instead of one. It is a CDF not of probabilities but of variances. We term this function the spectral distribution function (SDF)
+
+### Property 4.1 - Spectral Representation of an Autocovariance Function
+
+If a time series is stationary, then there exists a unique monotonically increasing function $F(\omega)$ called the SDF with $F(-\infty) = F(-1/2) = 0$ and $F(\infty) = F(1/2) = \gamma(0)$. The SDF is absolutely continuous and the autocovariance function is absolutely summable.
+
+### Property 4.2 - The Spectral Density
+
+If the autocovariance function, $\gamma(h)$, of a stationary process satisfies 
+
+$$\sum_{h = -\infty}^{\infty} |\gamma(h)| < \infty$$
+
+the inverse transformation of the spectral density
+
+$$f(\omega) = \sum_{h=-\infty}^{\infty} \gamma(h)e^{-2\pi i \omega h} \quad -1/2 \leq \omega \leq 1/2$$
+
+the fact that the autocovariance function is non-negative ensures that $f(\omega) \geq 0$ it also follows that $f(\omega) = f(-\omega)$. 
+
+We can now see that the autocovariance function and SDF contain the same information. Some problems work better with the other. 
+
+We note that autocovariance and spectral are Fourier transform pairs. This means that if $f(\omega)$ and $g(\omega)$ are two spectral densities for which
+
+$$\gamma_f(h) = \int_{-1/2}^{1/2} g(\omega)e^{2\pi i \omega h} d\omega = \gamma_g(h)$$
+
+### Example 4.5 - White Noise Series
+
+Given a theoretical spectrum of a sequence of uncorrelated random variables, $w_t$, with variance $\sigma_w^2$ and it follows that 
+
+$$f_w(\omega) = \sigma_w^2$$
+
+A linear filter uses a set of specified coefficients, say $a_j$ to transform an input series, $x_t$ producing an output series $y_t$ of the form
+
+$$y_t = \sum_{j = -\infty}^{\infty}a_jx_{t-j}, \quad \sum_{j = -\infty}^{\infty} |a_j| < \infty$$
+
+The form above is called a convolution in some statistical contexts. The coefficients are collectively called the impulse response function, and the Fourier transform
+
+$$A(\omega) = \sum_{j = -\infty}^{\infty} a_j e^{-2\pi i \omega j}$$
+
+is called the frequency response function.
+
+### Property 4.3 - Output Spectrum of a Filtered Stationary Series
+
+For the transformed process, if $x_t$ has spectrum $f_x(\omega)$ then the spectrum of the filtered output, $y_t$, say $f_y(\omega)$ is related to the spectrum of x by 
+
+$$f_y(\omega) = |A(\omega)|^2f_x(\omega)$$
+The autocovariance of the filtered output is 
+
+$$\gamma_y(h) = \int_{-\frac12}^{\frac12} e^{2\pi i \omega h} f_y(\omega) d\omega$$
+
+### Property 4.4 - The Spectral Density of ARMA
+
+If $x_t$ is ARMA(p,q), $\phi(B)x_t = \theta(B)w_t$, its spectral density is given by
+
+$$f_x(\omega) = \sigma_w^2 \frac{|\theta (e^{-2\pi i \omega}|^2}{|\phi(e^{-2\pi i \omega})|^2}$$
+
+where $\phi(z) = 1 - \sum_{k=1}^p \phi_k z^k$ and $\theta(z) = 1 + \sum_{k=1}^q \theta_k z^k$
+
+### Example 4.6 - Moving Average
+
+Looking at a MA(1) model given by $x_t = w_t +.5w_{t-1}$. 
+
+The autocovariance is as follows
+
+$$\gamma = 
+\begin{cases}
+(1+.5^2)\sigma_w^2 = 1.25\sigma_w^2 & h = 0 \\
+.5\sigma_w^2 & h = \pm 1 \\
+0 & \pm h 
+\end{cases}$$
+
+Substituting this into the definition of $f(\omega)$
+
+$$f(\omega) = \sigma_w^2[1.25 + \cos(2\pi\omega)]$$
+
+For an MA, $f(\omega) = \sigma_w^2|\theta(e^{-2\pi i \omega})|^2$ and because $\theta(z) = 1 + .5z$
+
+$$|\theta(e^{-2\pi i \omega})|^2 = 1.25 + .5(e^{-2\pi i \omega} + e^{2\pi\omega})$$
+
+### Example 4.7 - A Second-Order Autoregressive Series
+
+If we consider the AR(2) process, $x_t - \phi_1 x_{t-1} - \phi_2 x_{t-2} = w_t$ for the special case $\phi_1 = 1$ and $\phi_2 = -.9$
+
+We can now solve for $|\theta(e^{-2\pi i \omega})|^2$
+
+$$ = (1 - e^{-2\pi i \omega} + .9e^{-4\pi i \omega})(1 - 2^{2\pi i \omega} + .9e^{4\pi i \omega}) \\
+= 2.81 - 3.8\cos(2\pi\omega) + 1.8\cos(4\pi\omega)$$
+
+The spectral density of $x_t$ is
+
+$$f_x(\omega) = \frac{\sigma_w^2}{2.81 - 3.8\cos(2\pi\omega) + 1.8\cos(4\pi\omega)}$$
+The spectral density can also be obtained from first principles, 
+
+$$\gamma_w(h) = 2.81\gamma_x(h) - 1.9[\gamma_x(h+1)+\gamma_x(h-1) + .9[\gamma_x(h+2) + \gamma_x(h-2)]$$
+
+We can substitute the spectral representation for the autocovariance which yields
+
+$$\gamma_w(h) = \int_{-\frac12}^{\frac12}[2.81 - 3.8\cos(2\pi\omega) + 1.8\cos(4\pi\omega)]e^{2\pi i \omega h} f_x(\omega) d\omega$$
+
+If the spectrum of the white noise process is $g_w(\omega)$ the uniqueness of the Fourier transform allows us to identify
+
+$$g_w(\omega) = [2.81 - 3.8\cos(2\pi\omega) + 1.8\cos(4\pi\omega)]f_x(\omega)$$
+
+which given $g_w(\omega) = \sigma_w^2$. We now know that
+
+$$f_x(\omega) = \frac{\sigma_w^2}{2.81 - 3.8\cos(2\pi\omega) + 1.8\cos(4\pi\omega)}$$
+
+### Example 4.8 - Every Explosion has a Cause (cont)
+
+Previously we discussed the fact that explosive models have causal counterparts. We also indicated it is easier to show the result in the spectral domain. 
+
+The spectral density of $x-t = 2x_{t-1} + w_t$ where $w_t \sim iid N(0,\sigma_w^2)$
+
+$$f_x(\omega) = \sigma_w^2|1 - 2e^{-2\pi i \omega}|^{-2}$$
+
+But, $|1 - 2e^{-2\pi i \omega}| = |1 - 2e^{2\pi i \omega}| = |(2e^{2\pi i \omega})(\frac12e^{-2\pi i \omega} - 1)| = 2|1 - \frac12e^{-2\pi i \omega}|$
+
+Thus we can solve the previous formula as
+
+$$f_x(\omega) = \frac14\sigma_w^2|1 - \frac12e^{-2\pi i \omega}|^{-2}$$
+
+this can now tell us that $x_t = \frac12x_{t-1} + v_t$ with $v_t \sim iid \; N(0,\frac14 \sigma_w^2)$
+
+### Example 4.9 - A Periodic Stationary Process (cont)
+
+In Example 4.4 we considered a periodic stationary process, $x_t = U_1 \cos(2\pi\omega_0 t) + U_2\sin(2\pi\omega_0t)$ we can also write this as 
+
+
+$$x_t = \frac12(U_1 + iU_2)e^{-2\pi i \omega_0 t}+\frac12(U_1 - iU_2)e^{2\pi i \omega_0 t}$$
+
+if we call $Z = \frac12(U_1 + iU_2)$, then $Z^* = \frac12(U_1 - iU_2)$, where * denotes conjugation. In this case the expected values of Z is zero and Z* is zero.
+
+For mean zero complex random variables, say X and Y, $\textrm{cov}(X,Y) = E(XY^*)$. Thus the variance 
+
+$$\textrm{var}(Z) = \frac14[E(U_1^2)+E(U_2^2)] = \frac{\sigma^2}2$$
+
+and so is the variance of the conjugate. And the conjugate of the conjugate is the original!
+
+The covariance of Z and Z* is 0 
+
+We can now write the following 
+
+$$x_t = Ze^{-2\pi i \omega_0 t} + Z^*e^{2\pi i \omega_0 t} = \int_{-\frac12}^{\frac12}e^{2\pi i \omega t}dZ(\omega)$$
+
+where $Z(\omega)$ is a complex-valued random process that makes uncorrelated jumps at $-\omega_0$ and $\omega_0$ with mean zero and variance $\sigma^2/2$.
+
+### Propert 4.5 - Spectral Representation of a Stationary Process
+
+If $x_t$ is a mean zero stationary process with an SDF ($F(\omega)$) then there exsits a stochastic process $Z(\omega)$ on the interval $\omega \in [-1/2,1/2]$, having stationary uncorrleated non-overlapping increments,
+
+$$x_t  = \int_{-\frac12}^{\frac12}e^{2\pi i \omega t}dZ(\omega)$$
+
+where for $-1/2 \leq \omega_1 \leq \omega_2 \leq 1/2$
+
+$$\textrm{var}\{Z(\omega_2) - Z(\omega_1)\} = F(\omega_2) - F(\omega_1)$$
+
+# Chapter 4.3 - Periodogram and Discrete Fourier Transform
+
+The periodogram is the sample version of the spectral density which is population-based
+
+\textbf{Discrete Fourier Transform} - is when given data we identify it as 
+
+$$d(\omega_j) = n^{-1/2}\sum_{t=1}^n x_t e^{-2\pi i \omega_j t}$$
+
+Where we have j as discrete values and the frequencies $\omega_j = j/n$ are callled the Fourier or fundamental frequencies
+
+If we have n as a highly composite integer we can find the DFT using FFT. 
+
+Sometimes it is helpful to exploit the inversion result for DFTs, which shows the linear transformation one-to-one. For the inverse DFT we have,
+
+$$x_t = n^{-1/2}\sum_{j=0}^{n-1}d(\omega_j)e^{2\pi i \omega_j t}$$
+
+\textbf{Periodogram} - is defined as 
+
+$$I(\omega_j) = |d(\omega_j)|^2$$
+
+Not that $I(0) = n\bar x^2$ where $\bar x$ is the sample mean. Also $\sum_{t=1}^n \exp(-2\pi i t \frac jn) = 0$ for $j \neq 0$
+
+This means we can write the DFT as 
+
+$$d(\omega_j) = n^{-1/2} \sum_{t=1}^n (x_t - \bar{x})e^{-2\pi i \omega_j t} \quad j \neq 0$$
+Thus
+\begin{equation}
+\begin{split}
+I(\omega_j) = |d(\omega_j)|^2 & = n^{-1} \sum_{t=1}^n \sum_{s=1}^n(x_t - \bar x)(x_s - \bar x)e^{-2\pi i \omega_j (t-s)} \\
+& = n^{-1} \sum_{h = -(n-1)}^{n-1} \sum_{t=1}^{n - |h|}(x_{t+|h|} - \bar x)(x_t - \bar x)e^{-2\pi i \omega_j h} \\
+& = \sum_{h = -(n-1)}^{n-1} \hat{\gamma}e^{-2\pi i \omega_j h}
+\end{split} \end{equation}
+
+we have to put h = t - s with $\hat{\gamma}$
+
+It may seem like a an obvious solution by just replacing the $\gamma$ with a hat but it is actually not a good estimator to just do that because it can use some bad estimates of the population. 
+
+An improvement is that of $\hat f(\omega) = \sum_{|h|\leq m}\hat{\gamma}(h)e^{-2\pi i \omega h}$
+
+Sometimes it can be effective to work with the real and imaginary separate
+
+\textbf{Cosine Transform} - we define it as such 
+
+$$d_c(\omega_j) = n^{-1/2}\sum_{t=1}^n x_t \cos(2\pi\omega_jt)$$
+
+\textbf{Sine Transform} - we define it as such
+
+$$d_s(\omega_j) = n^{-1/2} \sum_{t=1}^n x_t \sin(2\pi\omega_jt)$$
+
+where $w_j = j/n, \quad j = 0,1,\ldots, n-1$
+
+We not that $d(\omega_j) = d_c(\omega_j) - id_s(\omega_j)$ and hence 
+
+$$I(\omega_j) = d_c^2(\omega_j) + d_s^2(\omega_j)$$
+
+### Example 4.10 Spectral ANOVA 
+
+Let x be a sample of size n where n is odd. We now recall
+
+$$x_t = a_0 + \sum_{j=1}^m [a_j\cos(2\pi\omega_jt) + b_j\sin(2\pi\omega_jt)]$$
+
+where m = (n-1)/2 is exact for t = 1 to n. Using multiple regression formulas we have $a_0= \bar x$
+
+$$a_j = \frac2n \sum_{t=1}^n x_t \cos(2\pi\omega_jt) = \frac2{\sqrt n}d_c(\omega_j)$$
+
+$$b_j = \frac2n \sum_{t=1}^n x_t \sin(2\pi\omega_j t) = \frac2{\sqrt n}d_s(\omega_j)$$
+
+It follows that 
+
+$$(x_t - \bar x) = \frac2{\sqrt n}\sum_{j=1}^m [d_c^2(\omega_j) + d_s^2(\omega_j)] = 2\sum_{j=1}^m I(\omega_j)$$
+
+We have partitioned the sum of squares into harmonic components represented by the frequency with the periodogram being the mean square regression. This leads to the following ANOVA table for n odd:
+
+\begin{center}
+\begin{tabular}{||c c c c||}
+\hline
+Source & df & SS & MS \\
+\hline
+$\omega_1$ & 2 & $2I(\omega_1)$ & $I(\omega_1)$ \\
+$\omega_2$ & 2 & $2I(\omega_2)$ & $I(\omega_2)$ \\
+\vdots & \vdots & \vdots & \vdots \\
+$\omega_m$ & 2 & $2I(\omega_m)$ & $I(\omega_m)$ \\
+\hline
+Total & n - 1 & $\sum_{t=1}^n (x_t - \bar x)^2$ & \\
+\hline
+\end{tabular}
+\end{center}
+
+### Example 4.11 - Spectral Analysis as Principal Component Analysis
+
+It is also possible to think of spectral analysis as a principal component analysis. Spectral desnity may be thought of as the approximate eigenvalues of the covariance matrix of a stationary process. 
+
+If $X = (x_1,\ldots,x_n)$ are n values of a mean-zero time series
+
+$$cov(X) = \Gamma_n = 
+\begin{bmatrix}
+\gamma(0) & \gamma(1) & \cdots & \gamma(n-1) \\
+\gamma(1) & \gamma(0) & \cdots & \gamma(n-2) \\
+\vdots & \vdots & \ddots & \vdots \\
+\gamma(n-1) & \gamma(n-2) & \cdots & \gamma(0)
+\end{bmatrix}$$
+
+For n sufficiently large, the eigenvalues of $\Gamma_n$ are
+
+$$\lambda_j \approx f(\omega_j) = \sum_{h=-\infty}^{\infty}\gamma(h)e^{-2\pi i h j / n}$$
+
+with approximate eigenvectors 
+
+$$g_j^* = \frac1{\sqrt n}e^{-2\pi x j/n}$$
+
+for $x = 1,2,\ldots,n-1$ If we let G be the complex matrix with columns $g_j$, the nthe complex vector $Y = G^*X$ has elements that are the DFTs
+
+$$y_j = \frac1{\sqrt n} \sum_{t=1}^{n}x_t e^{-2\pi i t j/n}$$
+
+In this case, the elements of Y are asymptotically uncorrelated complex random variables, with mean-zero and variance $f(\omega_j)$. Also X may be recovered as $X = GY$ so that 
+
+$$x_t = \frac1{\sqrt n} \sum_{j=0}^n y_j e^{2\pi i t j / n}$$
+
+### Example 4.12 - Covariance of Sine and Cosine Transforms
+
+### Property 4.6 - Distribution of the Periodogram Ordinates
+
+If 
+
+$$x_t = \sum_{j=-\infty}^{\infty} \psi_j w_{t-j}, \quad \sum_{j=-\infty}^{\infty}|\psi_j| < \infty $$
+
+where $w_t \sim iid(0,\sigma_w^2)$ and the infinite series of the product of absolute value of lag h and absolute value of autocovariance at lag h is convergent, then for any collection of m distinct frequencies $\omega_j \in (0,1/2) \textrm{ with } w_{j:n} \rightarrow w_j$
+
+$$\frac{2I(\omega_{j:n}}{f(\omega_j)} \xrightarrow{d} \textrm{iid }\chi_2^2$$
+provided $f(\omega_j) > 0$ for $j = 1,\ldots, m$
+
+The result of the above formula can be used to derive the confidence interval for the spectrum in the usual manner. Let $\chi_v^2(\alpha)$ denote the lower $\alpha$ probability tail for the chi-squared distirbution with $v$ degrees of freedom, that is
+
+$$\textrm{Pr}\{\chi_v^2 \leq x_v^2(\alpha)\} = \alpha$$
+
+Then an approximate 100(1 - $alpha$)% confidence interval for the spectral density function would be of the form
+
+$$\frac{2I(\omega_{j:n})}{\chi_2^2(1 - \alpha / 2)} \leq f(\omega) \leq \frac{2I(\omega_{j:n})}{\chi_2^2(\alpha/2)}$$
+
+We should usually remove trends in the data before we compute the periodogram. These trends can obscure the lower frequency components.
+
+### Example 4.13 - Periodogram of SOI and Recruitment Series
+
+In the Recruitment data we can see that there is an obvious peak at at yearly cycle we can also see a buildup around that four year cycle value in which can allude to the possible El Nino effect. The wide band can demonstrate that there is not an exactness to this cycle but it is on average on a four year cycle.
+
+We can note that $\chi_2^2(.025) = .05 \quad \chi_2^2(.975) = 7.38$ , we can obtain an approximately 95% confidence intervals for the frequencies of interest. In some situations we can see a wide interval which won't be as useful but in some circumstances where the bounds lie outside of all other bounds it may be of interest.
+
+Finally
+
+$$E[I(\omega)] \sim f(\omega) \quad \textrm{and} \quad \textrm{var}[I(\omega)] \sim f^2(\omega)$$
+
+# Chapter 4.4 - Nonparametric Spectral Estimation
+
+To continue the discussion that ended the previous section, we introduce a frequecny band \textbf{B} of L << n contiguous fundamental frequencies, center around frequency $\omega_j =  j/n$ which is chosen close to a frequency of interest, $\omega$. For frequencies of the form $\omega^* = \omega_j + k/n$
+
+$$B = \bigg\{ w^*: w_j - \frac mn \leq w^* \leq w_j + \frac mn \bigg\}$$
+
+where L = 2m + 1 is a odd number, chosen such that the spectral values in the interval B, 
+
+$$f(\omega_j + k/n), \quad k = -m,\ldots,0,\ldots,m$$
+
+are approximately equal to $f(\omega)$. Values of the spectrum in this band should be relatively constant for the smoothed spectra defined below to be good estimators.
+
+We now define an averaged (or smoothed) periodogram as the average of the periodogram values, say, 
+
+$$\bar f(\omega) = \frac1L \sum_{k=-m}^m I(\omega_j + k/n)$$
+
+over the band B. Under the assumption that the spectral density is fairly constant in the band zB, and in view of the conversion of the periodogram ot a chi-squared we can show that under appropriate conditions for large n, the periodograms are approximately distributed as independent $f(\omega)\chi_2^2/2$ rand varaibles for $0 < \omega < 1/2$ as long as we keep L fairly small relative to n
+
+### Example 4.14 - Averaged Periodogram for SOI and Recruitment
+
+### Example 4.15 - Harmonics
+
+### Example 4.16 - Smoothed Periodogram for SOI and Recruitment
+
+### Example 4.17 - The Effect of Tapering the SOI Series
